@@ -1,0 +1,19 @@
+<!--
+ * @Author: kyrie zhao
+ * @Date: 2024-04-09 23:15:03
+ * @LastEditors: kyrie zhao
+ * @LastEditTime: 2024-04-09 23:15:19
+ * @Description: 
+-->
+<template>
+    <template class="slds-m-around_medium" for:each={fields} for:item="field">
+        <c-custom-pre-chat-form-field key={field.name}
+                                    field-info={field}>
+        </c-custom-pre-chat-form-field>
+    </template>
+    <lightning-button label={startConversationLabel}
+                    title={startConversationLabel}
+                    onclick={onStartConversationClick}
+                    class="slds-m-left_x-small">
+    </lightning-button>
+</template>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>This is a sample Lightning Message Channel.</description>
+    <masterLabel>SampleMessageChannelNew</masterLabel>
+    <isExposed>true</isExposed>
+    <lightningMessageFields>
+        <fieldName>agentContent</fieldName>
+        <description>null</description>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <fieldName>content</fieldName>
+        <description>null</description>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <fieldName>name</fieldName>
+        <description>null</description>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <fieldName>content</fieldName>
+        <description>null</description>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <fieldName>recordId</fieldName>
+        <description>null</description>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <fieldName>timestamp</fieldName>
+        <description>null</description>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <fieldName>type</fieldName>
+        <description>null</description>
+    </lightningMessageFields>
+</LightningMessageChannel>

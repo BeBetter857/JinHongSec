@@ -1,0 +1,64 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" controller="RelatedFilesController">
+     
+    <!--Attributes-->
+    <aura:attribute name="cdList" type="List"/>
+     
+    <!--Handlers-->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+     
+    <!--Component Start-->
+    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+        <thead>
+            <tr class="slds-line-height_reset">
+                <th class="slds-text-title_caps" scope="col">
+                    <div class="slds-truncate" title="Title">Title</div>
+                </th>
+                <th class="slds-text-title_caps" scope="col">
+                    <div class="slds-truncate" title="File Type">File Type</div>
+                </th>
+                <th class="slds-text-title_caps" scope="col">
+                    <div class="slds-truncate" title="Created By">Created By</div>
+                </th>
+                <th class="slds-text-title_caps" scope="col">
+                    <div class="slds-truncate" title="Created Date">Created Date</div>
+                </th>
+                <th class="slds-text-title_caps" scope="col">
+                     
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <aura:iteration items="{!v.cdList}" var="cd">
+                <tr>
+                    <th scope="row">
+                        <div class="slds-truncate" title="{!cd.Title}">
+                            <a onclick="{!c.handleSelectedDocPreview}" data-Id="{!cd.Id}">{!cd.Title}</a>
+                        </div>
+                    </th>
+                    <th scope="row">
+                        <div class="slds-truncate" title="{!cd.FileType}">
+                            {!cd.FileType}
+                        </div>
+                    </th>
+                    <th scope="row">
+                        <div class="slds-truncate" title="{!cd.CreatedBy.Name}">
+                            <a onclick="{!c.handleRedirectToUserRecord}" data-Id="{!cd.CreatedById}">{!cd.CreatedBy.Name}</a>
+                        </div>
+                    </th>
+                    <th scope="row">
+                        <div class="slds-truncate" title="{!cd.CreatedDate}">
+                            <lightning:formattedDateTime value="{!cd.CreatedDate}"/>
+                        </div>
+                    </th>
+                    <th scope="row">
+                        <lightning:buttonMenu alternativeText="Show menu" menuAlignment="auto" onselect="{!c.handleSelectedAction}" value="{!cd.Id}">
+                            <lightning:menuItem value="Download" label="Download" iconName="utility:download" title="Download" />
+                            <lightning:menuItem value="Delete" label="Delete" iconName="utility:delete" title="Delete"/>
+                        </lightning:buttonMenu>
+                    </th>
+                </tr>  
+            </aura:iteration>
+        </tbody>
+    </table>
+    <!--Component End-->
+</aura:component>

@@ -1,0 +1,44 @@
+<template>
+    <lightning-card variant="base">
+        <div class="chat-component" id="chat-container">
+            <div class="slds-chat-bookend">
+                <span class="slds-icon_container slds-icon-utility-chat slds-chat-icon">
+                    <svg class="slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true">
+                    <use xlik:href="/assets/icons/utility-sprite/svg/symbols.svg#chat"></use>
+                </span>
+                <p>Chat started by <b>Tejas Vispute</b> • 5:23 PM</p>
+            </div>
+            <section role="log" class="slds-chat">
+                <ul class="slds-chat-list">
+                    <template for:each={processedMessages} for:item="message">
+                        <li key={message.timestamp} class={message.messageClass}>
+                            <div class="slds-chat-message">
+                                <div class="slds-chat-message__body">
+                                    <div class={message.contentClass}>
+                                        <span>{message.content}</span>
+                                    </div>
+                                    <div class="slds-chat-message__meta">
+                                        {message.type} • {message.timestamp}
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </template>
+                </ul>
+            </section>
+        </div>
+    </lightning-card>
+    <lightning-card title="LWC LMS Component A">
+        <div class="slds-m-around_medium">
+            <Lightning-textarea type="text" label="Enter message to publish" onchange={handleInputChange}></Lightning-textarea>
+        </div>
+
+        <div class="slds-m-around_medium">
+            <lightning-button variant="success" label="Accept Chat Transcript" onclick={handleAcceptWork}></lightning-button>
+            <span class="slds-m-horizontal__medium"></span>
+            <lightning-button variant="brand" label="Send Message" onclick={handlePublish}></lightning-button>
+            <span class="slds-m-horizontal_medium"></span>
+            <lightning-button variant="destructive" label="End Chat" onclick={handleCloseChat}></lightning-button>
+        </div>
+    </lightning-card>
+</template>
