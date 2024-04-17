@@ -1,28 +1,37 @@
+/*
+ * @Author: kyrie zhao
+ * @Date: 2024-04-09 23:31:19
+ * @LastEditors: kyrie zhao
+ * @LastEditTime: 2024-04-15 15:15:53
+ * @Description: 
+ */
 ({
     sendMessage: function(component, event, helper) {
         var message = event.getParam("lmsData");
+        console.log('**** message lmsData :',message)
         var conversationKit = component.find("conversationKit");
+        console.log('**** conversationKit :',conversationKit)
         var recordId = component.get("v.recordId");
-        System.debug(LoggingLevel.INFO, '*** recordId : ' + recordId);
-        System.debug(LoggingLevel.INFO, '*** message.action : ' + message.action);
-        
+        console.log('**** message.action  :',message.action )
         if (message.action == 'closeChat') {
             helper.closeWork(component);
         } else if (message.action === 'acceptWork') {
             helper.acceptWork(component);
         } else {
-            conversationKit.sendMessage({
-                recordId: recordId,
-                message: {
-                    text: message.value
-                }
-            }).then(function (result) {
-                if (result) {
-                    console.log("Successfully sent message");
-                } else {
-                    console.log("Failed to send message");
-                };
-            });
+            helper.replyMsg(component, event, helper);
+
+            // conversationKit.sendMessage({
+            //     recordId: recordId,
+            //     message: {
+            //         text: message.value
+            //     }
+            // }).then(function (result) {
+            //     if (result) {
+            //         console.log("Successfully sent message");
+            //     } else {
+            //         console.log("Failed to send message");
+            //     };
+            // });
         }
     },
     onAgentSend: function (cmp, evt, helper) {
@@ -91,5 +100,5 @@
         console.log(statusName);
         console.log(statusApiName);
     }, 
-
+    
 })

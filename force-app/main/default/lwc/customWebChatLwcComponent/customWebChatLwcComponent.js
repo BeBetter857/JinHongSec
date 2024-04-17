@@ -65,14 +65,18 @@ export default class CustomWebChatLwcComponent extends LightningElement {
 
 
     connectedCallback() {
+        console.log('**** this.recordId :',this.recordId)
+        
         // Subscribe to the Lightning Message Channel
         this.subscribeToMessageChannel();
         console.log("Recived Messages ", this.receivedMessages);
         // I Load data from Local storage when the component is connected
         const storedMessages = localStorage.getItem("chatMessages");
+        console.log('**** storedMessages :',storedMessages)
         if (storedMessages) {
             this.receivedMessages = JSON.parse(storedMessages);
         }
+        console.log('**** this.receivedMessages :', this.receivedMessages)
     }
 
     subscribeToMessageChannel() {
@@ -82,6 +86,7 @@ export default class CustomWebChatLwcComponent extends LightningElement {
     }   
 
     handleMessage(message) {
+        console.log('**** message :',message)
         // Handle received message data
         if (message.content && message.timestamp) {
             this.receivedMessages.push({
@@ -91,11 +96,12 @@ export default class CustomWebChatLwcComponent extends LightningElement {
                 recordId: message.recordId,
                 type: message.type
             });
+            console.log('**** JSON.stringify(this.receivedMessages) :',JSON.stringify(this.receivedMessages))
             localStorage.setItem('chatMessages', JSON.stringify(this.receivedMessages));
             // After adding the message, scroll to the bottom
             this.scrollToBottom();
         }
-        this. receivedMessages = [...this.receivedMessages];
+        this.receivedMessages = [...this.receivedMessages];
     }
 
     // Scroll to the bottom of the chat container

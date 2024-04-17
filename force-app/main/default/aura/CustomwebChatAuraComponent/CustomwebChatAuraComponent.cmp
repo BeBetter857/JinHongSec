@@ -1,25 +1,42 @@
-<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId,lightningcommunity:allowInRelaxedCSP" access="global" description="Conversation toolkit api sample">
+<!--
+ * @Author: kyrie zhao
+ * @Date: 2024-04-09 23:31:19
+ * @LastEditors: kyrie zhao
+ * @LastEditTime: 2024-04-16 16:49:20
+ * @Description: 
+-->
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global" description="Conversation toolkit api sample" controller="LineChatController">
     <aura:attribute name="recordId" type="String"/>
     <aura:attribute name="messageReceived" type="String"/>
-    <aura:attribute name="chatLog" type="Object" />
-
+    
     <lightning:messageChannel type="SampleMessageChannel__c" aura:id="SampleMessageChannel" onMessage="{!c.sendMessage}" scope="APPLICATION"/>
+    <Lightning:messageChannel type="SampleMessageChannelNew__c" aura:id="messageChannel"/>
+
     <lightning:conversationToolkitAPI aura:id="conversationKit"/>
-    <aura:handler event="lightning:omniChannelConnectionError" action="{! c.onConnectionError }"/>
-    <aura:handler event="lightning:omniChannelLoginSuccess" action="{! c.onLoginSuccess }"/>
     <lightning:omniToolkitAPI aura:id="omniToolkit"/>
 
-    <!-- Get Agent Message (lightning:conversationAgentSend) -->
+    <aura:attribute name="chatLog" type="Object" />
+
+    <!-- 表示网络连接出现问题。注销用户(如适用) -->
+    <aura:handler event="lightning:omniChannelConnectionError" action="{!c.onConnectionError }"/>
+
+    <!-- 当全渠道用户登录成功时触发 -->
+    <aura:handler event="lightning:omniChannelLoginSuccess" action="{!c.onLoginSuccess }"/>
+
+    <!-- 表示代理发送了一条信息 -->
     <aura:handler event="lightning:conversationAgentSend" action="{!c.onAgentSend}"/>
-    <!-- Get Customer Message (lightning:conversationNewMessage) -->
+
+    <!-- 表示收到对话终端用户的信息 -->
     <aura:handler event="lightning:conversationNewMessage" action="{!c.onNewMessage}"/>
 
-    <aura:handler event="lightning:omniChannelStatusChanged" action="{! c.onStatusChanged }"/>
-    
+    <!-- 当全渠道用户更改状态时触发 -->
+    <aura:handler event="lightning:omniChannelStatusChanged" action="{!c.onStatusChanged }"/>
+
     <lightning:utilityBarAPI aura:id="utilitybar" />
-    <Lightning:messageChannel type="SamplellespageChannelNew__c" aura:id="messageChannel"/>
+
+    <p>????????: {!v.recordId}</p>
     <lightning:button label="Set Utility Icon" onclick="{!c.setUtilityIcon}" />
-    
+
     <lightning:button label="Get Agent works" onclick="{! c.getAgentWorks }" /> 
 </aura:component>
 
