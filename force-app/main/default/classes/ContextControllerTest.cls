@@ -16,6 +16,7 @@ public class ContextControllerTest {
             ProfileId = p.Id,
             IsActive=true
         );
+        
     	insert u;
         
        	Contact contact = new Contact();
