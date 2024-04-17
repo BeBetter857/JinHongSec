@@ -108,6 +108,8 @@ jobs:
             - name: 'Populate auth file with SFDX_URL secret of integration org'
               shell: bash
               run: |
+                  echo 环境变量
+                  echo ${{ secrets.SFDX_INTEGRATION_URL}}
                   echo ${{ secrets.SFDX_INTEGRATION_URL}} > ./SFDX_INTEGRATION_URL.txt
                   cat ./SFDX_INTEGRATION_URL.txt
             # 使用文本文件中存储的 URL 向 org 进行身份验证
