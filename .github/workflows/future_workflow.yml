@@ -63,6 +63,9 @@ jobs:
 
               # 最后，我们将测试列表添加到 $GITHUB_ENV 变量中，以便在后续步骤中引用该列表。 如果您使用的是普通 env 变量，其值将无法在此步骤之外使用。
               run: |
+                  echo what is in the de?
+                  cd /home/runner/work/JinHongSec/JinHongSec/
+                  ls -a
                   echo $PR_BODY > ./pr_body.txt
                   node ./parsePR.js              
                   TESTS=$(cat testsToRun.txt)       
