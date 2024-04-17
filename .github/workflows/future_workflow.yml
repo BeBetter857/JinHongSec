@@ -1,0 +1,154 @@
+# workflow唯一名称
+name: Validate PR on future branch
+
+# 定义workflow什么时间运行
+on:
+    # 发生pull request event时，该workflow就会运行
+    pull_request:
+      # The events are that a PR is opened, or when a commit is pushed to a branch that has an existing pull request
+      # 事件包括打开PR，或者将提交推送到具有现有拉取请求的分支
+      types: [opened, synchronize]
+      # 分支过滤器允许指定只有当分支名称为 "develop "时才运行此工作流程。这样我们就能防止在其他分支上打开 PR 时运行此工作流程
+      branches: [ future ]
+      # 我们只关注 force-app 目录的更改，该目录是 sfdx 项目的根目录。这样，在更改非 salesforce 文件（如 yml 文件）时，任务不会运行
+      paths:
+        - 'force-app/**'
+            
+# 满足上述条件时执行的任务
+jobs:
+    # 这是Job的名称。您可以给它起任何您想要的名字
+    validate-deployment-on-develop-org:
+        # 正如博文中提到的，该任务在虚拟机中运行。在这里，我们可以指定该虚拟机应在哪个操作系统上运行。
+        # 在本例中，我们将在最新版本的 ubuntu 上运行我们的命令
+        runs-on: ubuntu-latest
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        steps:
+            # 现在，我们在虚拟机中安装 nodejs，并指定版本 14
+            - uses: actions/setup-node@v3
+              with:
+                node-version: '14'
+
+            # 我们的想法是，虚拟机可以访问你的远程版本库，因为你的版本库是一个 sfdx 项目
+
+
+            # 这是一个默认操作，允许我们输入版本库的根目录
+            # 确保指定 fetch-depth:0。这样我们就能访问推送到版本库的之前提交
+            # 稍后，当我们试图找出哪些元数据在两次提交之间发生了变化时，就会用到它，这样我们就可以只将这些元数据部署到目标 org 上
+
+            - name: 'Checkout source code'
+              uses: actions/checkout@v3
+              with:
+                fetch-depth: 0
+            
+            # 现在，我们需要一种方法来让开发人员指定要运行的测试，可以是所有测试，也可以只运行与其部署相关的测试。
+
+            # 为此，我们可以要求开发人员在 PR 的正文中为其测试类命名，语法如下
+
+            # Apex::[CommunitiesLoginControllerTest,MyProfilePageControllerTest]::Apex
+            # or Apex::[all]::Apex to run all tests
+
+            # 这种特殊的分隔符可以添加到 PR 模板中，这样您的团队就不必记住这些语法了。
+
+            # 一旦开发人员指定了要运行的类列表，我们就需要能够从 PR 中提取这些信息，并将其传递给虚拟机。
+
+            - name: 'Read PR Body'
+              env:
+                # 拉取请求正文可通过 github 上下文对象获取
+                # 我们将拉动请求的正文放入一个 env 变量（仅适用于本步骤）
+                PR_BODY: ${{github.event.pull_request.body}}
+
+              # 在这里，我们打印环境变量的内容，并将其导入文本文件。
+
+              # 然后，我们调用本地脚本 parsePR.js，它将创建一个名为 testsToRun.txt 的新文件。该文件将包含用逗号分隔的要运行的测试列表
+
+              # 最后，我们将测试列表添加到 $GITHUB_ENV 变量中，以便在后续步骤中引用该列表。 如果您使用的是普通 env 变量，其值将无法在此步骤之外使用。
+              run: |
+                  echo $PR_BODY
+                  echo $PR_BODY > ./pr_body.txt
+                  node ./parsePR.js              
+                  TESTS=$(cat testsToRun.txt)       
+                  echo "APEX_TESTS=$TESTS" >> $GITHUB_ENV
+                  
+            # Now Install Salesforce CLI
+            - name: 'Install Salesforce CLI'
+              run: |
+                  wget https://developer.salesforce.com/media/salesforce-cli/sfdx/channels/stable/sfdx-linux-x64.tar.xz
+                  mkdir ~/sfdx
+                  tar xJf sfdx-linux-x64.tar.xz -C ~/sfdx --strip-components 1
+                  echo "$HOME/sfdx/bin" >> $GITHUB_PATH
+                  ~/sfdx/bin/sfdx version
+
+            # Then we install the SFDX-Git-Delta plugin - https://github.com/scolladon/sfdx-git-delta
+            # 这是一个非常棒的插件，它允许我们提取 package.xml 中在两次提交之间发生变化的元数据。我强烈建议大家阅读 github 的 readme，以了解更多有关其工作原理的信息。
+
+            - name: 'Installing sfdx git delta'
+              run: | 
+                  echo y | sfdx plugins:install sfdx-git-delta
+                  sfdx plugins 
+
+            # Install java as it is required for the next step
+            - name: 'Installing java'
+              run: |
+                sudo apt-get update
+                sudo apt install default-jdk
+
+            # Install SFDX scanner
+            - name: 'Installing SFDX scanner'
+              run: sfdx plugins:install @salesforce/sfdx-scanner
+
+            # 在设置此工作流程之前，您必须创建一个 Github Secret，其中包含 integration/qa org 的 sfdx 网址。
+
+            # 生成网址的步骤如下 
+            # https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_auth_sfdxurl.htm
+
+            # 然后，这个 URL 就可以与 sfdx auth:sfdxurl:store 一起使用，对资源库中的 sfdx 项目和 URL 生成地的 org 进行验证。这样就可以了，无需创建连接应用程序或其他任何东西。
+
+            # URL 保存在名为 SFDX_INTEGRATION_URL 的 Github Secret 中，因此我们要将 URL 保存到文本文件中
+            - name: 'Populate auth file with SFDX_URL secret of integration org'
+              shell: bash
+              run: |
+                  echo ${{ secrets.SFDX_INTEGRATION_URL}} > ./SFDX_INTEGRATION_URL.txt
+
+            # 使用文本文件中存储的 URL 向 org 进行身份验证
+            - name: 'Authenticate to Integration Org'
+              run: sfdx auth:sfdxurl:store -f ./SFDX_INTEGRATION_URL.txt -s -a integration
+
+            # 我们使用 SFDX Git Delta 创建一个目录，其中只包含已更改的元数据。
+            # 这样我们就可以只部署这些更改，而不是部署整个分支。
+            # 这有助于缩短部署时间
+            - name: 'Create delta packages for new, modified or deleted metadata'
+              run: | 
+                  mkdir changed-sources
+                  sfdx sgd:source:delta --to "HEAD" --from "HEAD^" --output changed-sources/ --generate-delta --source force-app/ 
+
+            # 现在，我们可以使用 sfdx 扫描仪扫描 delta 目录中的代码。
+            # 稍后可将 .sarif 文件上传到 github，这样我们就能直接从 PR 中看到扫描结果。
+
+            - name: 'Scan code'
+              run: |
+                  cd changed-sources
+                  sfdx scanner:run --format sarif --target './**/*.cls' --category "Design,Best Practices,Performance" --outfile 'apexScanResults.sarif'  
+                  cd ..
+
+            # 现在，我们按照上一步的说明上传 .sarif 文件
+            - name: Upload SARIF file
+              uses: github/codeql-action/upload-sarif@v1
+              with:
+                sarif_file: changed-sources/apexScanResults.sarif
+
+            # 如果 env 变量不等于 "all"，我们就知道有一系列测试可以运行。
+
+            - name: 'Check-only deploy delta changes - run specified tests'
+              if: ${{ env.APEX_TESTS != 'all' }}
+              run: |
+                  echo ${{env.APEX_TESTS}}
+                  sfdx force:source:deploy -p "changed-sources/force-app" --checkonly --testlevel RunSpecifiedTests --runtests ${{env.APEX_TESTS}} --json
+
+            # If the env variable equals all, we run all tests
+            - name: 'Check-only deploy delta changes - run all tests'
+              if: ${{ env.APEX_TESTS == 'all' }}
+              run: |
+                  sfdx force:source:deploy -p "changed-sources/force-app" --checkonly --testlevel RunLocalTests  --json
+
+            - name: 'Deploy destructive changes (if any)'
+              run: sfdx force:mdapi:deploy -d "changed-sources/destructiveChanges" --checkonly --ignorewarnings 
