@@ -146,10 +146,12 @@ jobs:
               if: ${{ env.APEX_TESTS != 'all' }}
               run: |
                   echo ${{env.APEX_TESTS}}
-                  [ -f /changed-sources/force-app ] && { echo "exist" }
-                  cat /home/runner/work/_temp/c633b681-cc96-47c8-97bd-7cf7145be7c8.sh
-                  sfdx force:source:deploy -p "changed-sources/force-app" --checkonly --testlevel RunSpecifiedTests --runtests ${{env.APEX_TESTS}} --json
-
+                  if [ -f /changed-sources/force-app ]; then
+                      echo "changed-sources/force-app exist"
+                      sfdx force:source:deploy -p "changed-sources/force-app" --checkonly --testlevel RunSpecifiedTests --runtests ${{env.APEX_TESTS}} --json
+                  else 
+                      echo "changed-sources/force-app does not exist"
+                  fi
             # If the env variable equals all, we run all tests
             - name: 'Check-only deploy delta changes - run all tests'
               if: ${{ env.APEX_TESTS == 'all' }}
