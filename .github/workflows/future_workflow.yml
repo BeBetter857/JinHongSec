@@ -96,7 +96,7 @@ jobs:
 
             # Install SFDX scanner
             - name: 'Installing SFDX scanner'
-              run: sfdx plugins:install @salesforce/sfdx-scanner
+              run: sfdx plugins:install @salesforce/sfdx-scanner@latest
 
             # 在设置此工作流程之前，您必须创建一个 Github Secret，其中包含 integration/qa org 的 sfdx 网址。
 
@@ -146,8 +146,12 @@ jobs:
               if: ${{ env.APEX_TESTS != 'all' }}
               run: |
                   echo ${{env.APEX_TESTS}}
-                  sfdx force:source:deploy -p "changed-sources/force-app" --checkonly --testlevel RunSpecifiedTests --runtests ${{env.APEX_TESTS}} --json
-
+                  if [ -f /changed-sources/force-app ]; then
+                      echo "changed-sources/force-app exist"
+                      sfdx force:source:deploy -p "changed-sources/force-app" --checkonly --testlevel RunSpecifiedTests --runtests ${{env.APEX_TESTS}} --json
+                  else 
+                      echo "changed-sources/force-app does not exist"
+                  fi
             # If the env variable equals all, we run all tests
             - name: 'Check-only deploy delta changes - run all tests'
               if: ${{ env.APEX_TESTS == 'all' }}
@@ -155,4 +159,4 @@ jobs:
                   sfdx force:source:deploy -p "changed-sources/force-app" --checkonly --testlevel RunLocalTests  --json
 
             - name: 'Deploy destructive changes (if any)'
-              run: sfdx force:mdapi:deploy -d "changed-sources/destructiveChanges" --checkonly --ignorewarnings 
+              run: sfdx force:mdapi:deploy -d "changed-sources/destructiveChanges" --checkonly --testlevel RunSpecifiedTests --runtests LogDemoTest --ignorewarnings 
