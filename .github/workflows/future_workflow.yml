@@ -147,6 +147,7 @@ jobs:
               run: |
                   ls -a
                   echo ${{env.APEX_TESTS}}
+                  [ -f /changed-sources/force-app ] && { echo "exist" }
                   sfdx force:source:deploy -p "changed-sources/force-app" --checkonly --testlevel RunSpecifiedTests --runtests ${{env.APEX_TESTS}} --json
 
             # If the env variable equals all, we run all tests
