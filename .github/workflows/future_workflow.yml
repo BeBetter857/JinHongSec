@@ -136,7 +136,7 @@ jobs:
 
             # 现在，我们按照上一步的说明上传 .sarif 文件
             - name: Upload SARIF file
-              uses: github/codeql-action/upload-sarif@v2
+              uses: github/codeql-action/upload-sarif@v3
               with:
                 sarif_file: changed-sources/apexScanResults.sarif
 
